@@ -2,6 +2,7 @@ import logo from "/rocket.png";
 import "./App.css";
 import LocalStorageComponent from "./Components/LocalStorageComponent";
 import API from "./Components/API";
+import FirebaseForm from "./Components/FirebaseForm";
 
 function App() {
   return (
@@ -13,9 +14,11 @@ function App() {
       </div>
       <h1>Module 2</h1>
       <div className="card">
-        <LocalStorageComponent />
+        {/* <LocalStorageComponent />
 
-        <API pokemon="charmander" />
+        <API pokemon="charmander" /> */}
+
+        <FirebaseForm />
       </div>
     </>
   );
