@@ -55,17 +55,11 @@ export default function FirebaseForm() {
     e.preventDefault();
     setEditing(false);
 
-    console.log(editingData);
-    console.log(studentListRef);
-
     const updates = {};
     updates[editingData.key] = {
       name: textInputValue,
       location: location,
     };
-
-    console.log(updates);
-
     update(studentListRef, updates);
     setTextInputValue("");
     setEditingData({});
@@ -73,7 +67,6 @@ export default function FirebaseForm() {
   };
 
   const startUpdate = (student) => {
-    console.log(student);
     setEditing(true);
     setTextInputValue(student.val.name);
     setLocation(student.val.location);
