@@ -5,6 +5,8 @@ import {
   ref,
   set,
   update,
+  remove,
+  onChildRemoved,
 } from "firebase/database";
 import { database } from "../firebase";
 import { useEffect, useState } from "react";
@@ -15,6 +17,7 @@ export default function FirebaseForm() {
   const [students, setStudent] = useState([]);
   const [textInputValue, setTextInputValue] = useState("");
   const [location, setLocation] = useState("");
+
   const studentListRef = ref(database, DB_STUDENTS_KEY);
 
   const [editing, setEditing] = useState(false);
@@ -26,6 +29,12 @@ export default function FirebaseForm() {
         ...previousData,
         { key: data.key, val: data.val() },
       ]);
+    });
+
+    onChildRemoved(studentListRef, (data) => {
+      setStudent((previousData) =>
+        previousData.filter((item) => item.key !== data.key)
+      );
     });
   }, []);
 
@@ -72,6 +81,16 @@ export default function FirebaseForm() {
     setLocation(student.val.location);
     setEditingData(student);
   };
+
+  const deleteItem = (student) => {
+    // update your state
+    // console.log("deleting");
+    // const studentsArray = [...students];
+    // const newArray = studentsArray.filter((item) => item.key !== student.key);
+    // setStudent(newArray);
+    remove(ref(database, `${DB_STUDENTS_KEY}/${student.key}`));
+  };
+
   return (
     <div>
       <form onSubmit={editing ? editData : writeData}>
@@ -93,6 +112,7 @@ export default function FirebaseForm() {
           <p key={student.key}>
             {student.val.name} - {student.val.location}
             <button onClick={() => startUpdate(student)}>update me</button>
+            <button onClick={() => deleteItem(student)}>delete</button>
           </p>
         ))
       ) : (
