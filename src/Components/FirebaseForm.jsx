@@ -8,15 +8,29 @@ import {
   remove,
   onChildRemoved,
 } from "firebase/database";
-import { database } from "../firebase";
+
+import {
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+} from "firebase/storage";
+
+import { database, storage } from "../firebase";
 import { useEffect, useState } from "react";
 
 const DB_STUDENTS_KEY = "students";
+const DB_STORAGE_KEY = "images";
 
 export default function FirebaseForm() {
+  // full student information
   const [students, setStudent] = useState([]);
+
+  // capture student information
   const [textInputValue, setTextInputValue] = useState("");
   const [location, setLocation] = useState("");
+
+  // capture storage files
+  const [fileInputFile, setFileInputFile] = useState(null);
 
   const studentListRef = ref(database, DB_STUDENTS_KEY);
 
@@ -49,13 +63,52 @@ export default function FirebaseForm() {
     });
   }, [editing]);
 
-  const writeData = (e) => {
+  // .then
+  // const writeData = (e) => {
+  //   e.preventDefault();
+  //   const newStudentRef = push(studentListRef);
+  //   const storageRefInstance = storageRef(
+  //     storage,
+  //     DB_STORAGE_KEY + "/" + fileInputFile.name
+  //   );
+
+  //   uploadBytes(storageRefInstance, fileInputFile).then(() => {
+  //     getDownloadURL(storageRefInstance).then((url) => {
+  //       set(newStudentRef, {
+  //         name: textInputValue,
+  //         location: location,
+  //         url: url,
+  //       });
+  //     });
+  //   });
+
+  //   setTextInputValue("");
+  //   setLocation("");
+  // };
+
+  // await async
+  const writeData = async (e) => {
     e.preventDefault();
     const newStudentRef = push(studentListRef);
-    set(newStudentRef, {
-      name: textInputValue,
-      location: location,
-    });
+    const storageRefInstance = storageRef(
+      storage,
+      DB_STORAGE_KEY + fileInputFile.name
+    );
+
+    try {
+      await uploadBytes(storageRefInstance, fileInputFile);
+
+      const url = await getDownloadURL(storageRefInstance);
+
+      set(newStudentRef, {
+        name: textInputValue,
+        location: location,
+        url: url,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+
     setTextInputValue("");
     setLocation("");
   };
@@ -83,11 +136,6 @@ export default function FirebaseForm() {
   };
 
   const deleteItem = (student) => {
-    // update your state
-    // console.log("deleting");
-    // const studentsArray = [...students];
-    // const newArray = studentsArray.filter((item) => item.key !== student.key);
-    // setStudent(newArray);
     remove(ref(database, `${DB_STUDENTS_KEY}/${student.key}`));
   };
 
@@ -104,16 +152,27 @@ export default function FirebaseForm() {
           value={location}
           onChange={(e) => setLocation(e.target.value)}
         />
+
+        <input
+          type="file"
+          onChange={(e) => {
+            setFileInputFile(e.target.files[0]);
+          }}
+        />
+
         <input type="submit" value="submit" />
       </form>
 
       {students && students.length > 0 ? (
         students.map((student) => (
-          <p key={student.key}>
-            {student.val.name} - {student.val.location}
-            <button onClick={() => startUpdate(student)}>update me</button>
-            <button onClick={() => deleteItem(student)}>delete</button>
-          </p>
+          <div key={student.key}>
+            <img src={student.val.url} alt={student.val.url} />
+            <p>
+              {student.val.name} - {student.val.location}
+              <button onClick={() => startUpdate(student)}>update me</button>
+              <button onClick={() => deleteItem(student)}>delete</button>
+            </p>
+          </div>
         ))
       ) : (
         <p>Add a student please</p>
