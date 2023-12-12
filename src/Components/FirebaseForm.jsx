@@ -17,11 +17,12 @@ import {
 
 import { database, storage } from "../firebase";
 import { useEffect, useState } from "react";
+import FirebaseDisplay from "./FirebaseDisplay";
 
 const DB_STUDENTS_KEY = "students";
 const DB_STORAGE_KEY = "images";
 
-export default function FirebaseForm() {
+export default function FirebaseForm(props) {
   // full student information
   const [students, setStudent] = useState([]);
 
@@ -104,6 +105,7 @@ export default function FirebaseForm() {
         name: textInputValue,
         location: location,
         url: url,
+        user: props.user.email,
       });
     } catch (err) {
       console.log(err);
@@ -141,42 +143,37 @@ export default function FirebaseForm() {
 
   return (
     <div>
-      <form onSubmit={editing ? editData : writeData}>
-        <input
-          type="text"
-          value={textInputValue}
-          onChange={(e) => setTextInputValue(e.target.value)}
-        />
-        <input
-          type="text"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-        />
+      {props.user !== {} ? <p>Welcome back! {props.user.email}</p> : null}
+      {props.isLoggedIn ? (
+        <form onSubmit={editing ? editData : writeData}>
+          <input
+            type="text"
+            value={textInputValue}
+            onChange={(e) => setTextInputValue(e.target.value)}
+          />
+          <input
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+          />
 
-        <input
-          type="file"
-          onChange={(e) => {
-            setFileInputFile(e.target.files[0]);
-          }}
-        />
+          <input
+            type="file"
+            onChange={(e) => {
+              setFileInputFile(e.target.files[0]);
+            }}
+          />
 
-        <input type="submit" value="submit" />
-      </form>
+          <input type="submit" value="submit" />
+        </form>
+      ) : null}
 
-      {students && students.length > 0 ? (
-        students.map((student) => (
-          <div key={student.key}>
-            <img src={student.val.url} alt={student.val.url} />
-            <p>
-              {student.val.name} - {student.val.location}
-              <button onClick={() => startUpdate(student)}>update me</button>
-              <button onClick={() => deleteItem(student)}>delete</button>
-            </p>
-          </div>
-        ))
-      ) : (
-        <p>Add a student please</p>
-      )}
+      <FirebaseDisplay
+        students={students}
+        startUpdate={startUpdate}
+        deleteItem={deleteItem}
+        isLoggedIn={props.isLoggedIn}
+      />
     </div>
   );
 }

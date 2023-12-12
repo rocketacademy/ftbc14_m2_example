@@ -1,10 +1,22 @@
 import logo from "/rocket.png";
 import "./App.css";
-import LocalStorageComponent from "./Components/LocalStorageComponent";
-import API from "./Components/API";
+import LoginSignup from "./Components/LoginSignup";
 import FirebaseForm from "./Components/FirebaseForm";
+import { useState } from "react";
+import { auth } from "./firebase";
+import { signOut } from "firebase/auth";
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState({});
+
+  const handleSignOut = () => {
+    signOut(auth).then(() => {
+      setIsLoggedIn(false);
+      setUser({});
+    });
+  };
+
   return (
     <>
       <div>
@@ -14,11 +26,12 @@ function App() {
       </div>
       <h1>Module 2</h1>
       <div className="card">
-        {/* <LocalStorageComponent />
-
-        <API pokemon="charmander" /> */}
-
-        <FirebaseForm />
+        {isLoggedIn ? (
+          <button onClick={handleSignOut}>Sign out</button>
+        ) : (
+          <LoginSignup setUser={setUser} setIsLoggedIn={setIsLoggedIn} />
+        )}
+        <FirebaseForm isLoggedIn={isLoggedIn} user={user} />
       </div>
     </>
   );
