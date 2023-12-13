@@ -1,70 +1,45 @@
-import {
-  onChildAdded,
-  onChildChanged,
-  push,
-  ref,
-  set,
-  update,
-  remove,
-  onChildRemoved,
-} from "firebase/database";
+// Import required packages and components
+import { Link, Outlet, useNavigate } from "react-router-dom";
+import { useState } from "react";
 
+// Firebase local and external imports
+import { push, ref, set, update } from "firebase/database";
 import {
   ref as storageRef,
   uploadBytes,
   getDownloadURL,
 } from "firebase/storage";
-
 import { database, storage } from "../firebase";
-import { useEffect, useState } from "react";
-import FirebaseDisplay from "./FirebaseDisplay";
 
+// Firebase Key setup
 const DB_STUDENTS_KEY = "students";
 const DB_STORAGE_KEY = "images";
 
-export default function FirebaseForm(props) {
-  // full student information
-  const [students, setStudent] = useState([]);
-
-  // capture student information
-  const [textInputValue, setTextInputValue] = useState("");
-  const [location, setLocation] = useState("");
-
+export default function FirebaseForm({
+  isLoggedIn,
+  editing,
+  setEditing,
+  editingData,
+  setEditingData,
+  user,
+}) {
+  // states required for Form page
+  const [textInputValue, setTextInputValue] = useState(
+    editing ? editingData.val.name : ""
+  );
+  const [location, setLocation] = useState(
+    editing ? editingData.val.location : ""
+  );
   // capture storage files
   const [fileInputFile, setFileInputFile] = useState(null);
 
+  // React Router Dom navgiation to push users around.
+  const navigate = useNavigate();
+
+  // define and create the Firebase RealTimeDatabase list reference
   const studentListRef = ref(database, DB_STUDENTS_KEY);
 
-  const [editing, setEditing] = useState(false);
-  const [editingData, setEditingData] = useState({});
-
-  useEffect(() => {
-    onChildAdded(studentListRef, (data) => {
-      setStudent((previousData) => [
-        ...previousData,
-        { key: data.key, val: data.val() },
-      ]);
-    });
-
-    onChildRemoved(studentListRef, (data) => {
-      setStudent((previousData) =>
-        previousData.filter((item) => item.key !== data.key)
-      );
-    });
-  }, []);
-
-  useEffect(() => {
-    console.log("running");
-    onChildChanged(studentListRef, (data) => {
-      const studentsArray = [...students];
-      let isIndex = (element) => element.key == data.key;
-      const index = studentsArray.findIndex(isIndex);
-      studentsArray[index] = { key: data.key, val: data.val() };
-      setStudent(studentsArray);
-    });
-  }, [editing]);
-
-  // .then
+  // .then - logic to use .then over async await
   // const writeData = (e) => {
   //   e.preventDefault();
   //   const newStudentRef = push(studentListRef);
@@ -87,64 +62,85 @@ export default function FirebaseForm(props) {
   //   setLocation("");
   // };
 
-  // await async
+  // Logic to write a new post into the databse
   const writeData = async (e) => {
     e.preventDefault();
+
+    // Storage reference for the new file
     const newStudentRef = push(studentListRef);
     const storageRefInstance = storageRef(
       storage,
       DB_STORAGE_KEY + fileInputFile.name
     );
-
     try {
+      // first upload the image
       await uploadBytes(storageRefInstance, fileInputFile);
-
+      // get the image url from firebase
       const url = await getDownloadURL(storageRefInstance);
-
+      // set the data into the realtime database
       set(newStudentRef, {
         name: textInputValue,
         location: location,
         url: url,
-        user: props.user.email,
+        user: user.email,
       });
+      // send user to posts page
+      navigate("/posts");
     } catch (err) {
       console.log(err);
     }
-
+    // reset inputs
     setTextInputValue("");
     setLocation("");
   };
 
-  const editData = (e) => {
+  // Logic to edit post in the databse
+  const editData = async (e) => {
     e.preventDefault();
-    setEditing(false);
 
+    let url;
+
+    // if there is a new file we will upload it
+    if (fileInputFile) {
+      // new storage ref for the new file
+      const storageRefInstance = storageRef(
+        storage,
+        DB_STORAGE_KEY + fileInputFile.name
+      );
+      try {
+        // add a new file online if there is one
+        await uploadBytes(storageRefInstance, fileInputFile);
+        // get the url to store in the realtime database
+        url = await getDownloadURL(storageRefInstance);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    // Create an update object to update information online
     const updates = {};
     updates[editingData.key] = {
       name: textInputValue,
       location: location,
+      // use conditionals to either add a new item or the old item
+      url: url ? url : editingData.val.url,
     };
+    // firebase updating logic
     update(studentListRef, updates);
+
+    // reset internal states
     setTextInputValue("");
     setEditingData({});
     setLocation("");
-  };
+    setEditing(false);
 
-  const startUpdate = (student) => {
-    setEditing(true);
-    setTextInputValue(student.val.name);
-    setLocation(student.val.location);
-    setEditingData(student);
-  };
-
-  const deleteItem = (student) => {
-    remove(ref(database, `${DB_STUDENTS_KEY}/${student.key}`));
+    // push users to post page
+    navigate("/posts");
   };
 
   return (
     <div>
-      {props.user !== {} ? <p>Welcome back! {props.user.email}</p> : null}
-      {props.isLoggedIn ? (
+      {user.email ? <p>Welcome back! {user.email}</p> : null}
+      {isLoggedIn ? (
         <form onSubmit={editing ? editData : writeData}>
           <input
             type="text"
@@ -168,12 +164,9 @@ export default function FirebaseForm(props) {
         </form>
       ) : null}
 
-      <FirebaseDisplay
-        students={students}
-        startUpdate={startUpdate}
-        deleteItem={deleteItem}
-        isLoggedIn={props.isLoggedIn}
-      />
+      <Link to="editProfile">edit</Link>
+      <Link to="checkProfile">check</Link>
+      <Outlet />
     </div>
   );
 }
