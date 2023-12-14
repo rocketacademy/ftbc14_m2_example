@@ -1,6 +1,8 @@
 // Import required packages and components
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../provider/UserProvider";
+import { updateUser } from "../reducer/UserReducer";
 
 // Firebase local and external imports
 import { auth } from "../firebase";
@@ -18,12 +20,14 @@ export default function LoginSignup(props) {
   // React Router Dom navgiation to push users around.
   const navigate = useNavigate();
 
+  const { UserDispatch: dispatch } = useContext(UserContext);
+
   // Signin logic with firebase
   const signin = () => {
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         props.setIsLoggedIn(true);
-        props.setUser(userCredential.user);
+        dispatch(updateUser(userCredential.user));
         navigate("/posts");
       })
       .catch((err) => {
@@ -36,7 +40,7 @@ export default function LoginSignup(props) {
     createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         props.setIsLoggedIn(true);
-        props.setUser(userCredential.user);
+        dispatch(updateUser(userCredential.user));
         navigate("/posts");
       })
       .catch((err) => {

@@ -12,7 +12,7 @@ import {
 import { database, storage } from "../firebase";
 
 // Firebase Key setup
-const DB_STUDENTS_KEY = "students";
+const DB_STUDENT = "students";
 const DB_STORAGE_KEY = "images";
 
 export default function FirebaseForm({
@@ -37,7 +37,7 @@ export default function FirebaseForm({
   const navigate = useNavigate();
 
   // define and create the Firebase RealTimeDatabase list reference
-  const studentListRef = ref(database, DB_STUDENTS_KEY);
+  const studentListRef = ref(database, DB_STUDENT);
 
   // .then - logic to use .then over async await
   // const writeData = (e) => {
@@ -82,7 +82,7 @@ export default function FirebaseForm({
         name: textInputValue,
         location: location,
         url: url,
-        user: user.email,
+        user: user.user.email,
       });
       // send user to posts page
       navigate("/posts");
@@ -139,7 +139,7 @@ export default function FirebaseForm({
 
   return (
     <div>
-      {user.email ? <p>Welcome back! {user.email}</p> : null}
+      {user.user.email ? <p>Welcome back! {user.user.email}</p> : null}
       {isLoggedIn ? (
         <form onSubmit={editing ? editData : writeData}>
           <input

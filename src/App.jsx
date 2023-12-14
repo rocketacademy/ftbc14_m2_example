@@ -4,11 +4,13 @@ import {
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import LoginSignup from "./Components/LoginSignup";
 import FirebaseForm from "./Components/FirebaseForm";
 import FirebaseDisplay from "./Components/FirebaseDisplay";
 import NavBar from "./Components/Navbar";
+import { UserContext } from "./provider/UserProvider";
+import { updateUser } from "./reducer/UserReducer";
 
 // Firebase local and external imports
 import { signOut } from "firebase/auth";
@@ -30,9 +32,12 @@ const DB_STUDENTS_KEY = "students";
 
 // This component holds the lifted state and implements React Router Dom into the Application
 function App() {
+  // Setup the Reducer / Context
+  const { UserDispatch: dispatch, user: user } = useContext(UserContext);
+  console.log(user);
+
   // states required for App
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState({});
   const [students, setStudent] = useState([]);
   const [editing, setEditing] = useState(false);
   const [editingData, setEditingData] = useState({});
@@ -74,13 +79,13 @@ function App() {
   const handleSignOut = () => {
     signOut(auth).then(() => {
       setIsLoggedIn(false);
-      setUser({});
+      dispatch(updateUser({ user: {} }));
     });
   };
 
   // this compoent ensures that the user is logged in before rendering the JSX in the browser, if the user is not logged in they get redirected
   const RequireAuth = ({ children, redirectTo, user }) => {
-    const isAuthenticated = user.email ? true : false;
+    const isAuthenticated = user.user.email ? true : false;
     return isAuthenticated ? children : <Navigate to={redirectTo} />;
   };
 
@@ -92,7 +97,7 @@ function App() {
       element: (
         <div>
           <NavBar isLoggedIn={isLoggedIn} handleSignOut={handleSignOut} />
-          <LoginSignup setUser={setUser} setIsLoggedIn={setIsLoggedIn} />
+          <LoginSignup setIsLoggedIn={setIsLoggedIn} />
         </div>
       ),
     },
