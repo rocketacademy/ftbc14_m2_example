@@ -1,6 +1,7 @@
 // Import required packages and components
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { UserContext } from "../provider/UserProvider";
 
 // Firebase local and external imports
 import { push, ref, set, update } from "firebase/database";
@@ -16,13 +17,14 @@ const DB_STUDENT = "students";
 const DB_STORAGE_KEY = "images";
 
 export default function FirebaseForm({
-  isLoggedIn,
   editing,
   setEditing,
   editingData,
   setEditingData,
-  user,
 }) {
+  const { user: user } = useContext(UserContext);
+  console.log("userinfo", user);
+
   // states required for Form page
   const [textInputValue, setTextInputValue] = useState(
     editing ? editingData.val.name : ""
@@ -140,7 +142,7 @@ export default function FirebaseForm({
   return (
     <div>
       {user.user.email ? <p>Welcome back! {user.user.email}</p> : null}
-      {isLoggedIn ? (
+      {user.isLoggedIn ? (
         <form onSubmit={editing ? editData : writeData}>
           <input
             type="text"

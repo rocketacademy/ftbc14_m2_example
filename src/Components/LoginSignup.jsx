@@ -2,7 +2,7 @@
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../provider/UserProvider";
-import { updateUser } from "../reducer/UserReducer";
+import { updateIsLoggedIn, updateUser } from "../reducer/UserReducer";
 
 // Firebase local and external imports
 import { auth } from "../firebase";
@@ -12,7 +12,7 @@ import {
 } from "firebase/auth";
 
 // Component controlling the logina and signup flow of the application
-export default function LoginSignup(props) {
+export default function LoginSignup() {
   // states required for login page
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +26,8 @@ export default function LoginSignup(props) {
   const signin = () => {
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        props.setIsLoggedIn(true);
+        dispatch(updateIsLoggedIn());
+        // update reducer state
         dispatch(updateUser(userCredential.user));
         navigate("/posts");
       })
@@ -39,7 +40,8 @@ export default function LoginSignup(props) {
   const signup = () => {
     createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        props.setIsLoggedIn(true);
+        dispatch(updateIsLoggedIn());
+        // update reducer state
         dispatch(updateUser(userCredential.user));
         navigate("/posts");
       })

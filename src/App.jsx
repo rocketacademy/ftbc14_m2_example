@@ -9,8 +9,10 @@ import LoginSignup from "./Components/LoginSignup";
 import FirebaseForm from "./Components/FirebaseForm";
 import FirebaseDisplay from "./Components/FirebaseDisplay";
 import NavBar from "./Components/Navbar";
+
+// use context / useReducer
 import { UserContext } from "./provider/UserProvider";
-import { updateUser } from "./reducer/UserReducer";
+import { updateUser, updateIsLoggedIn } from "./reducer/UserReducer";
 
 // Firebase local and external imports
 import { signOut } from "firebase/auth";
@@ -37,7 +39,6 @@ function App() {
   console.log(user);
 
   // states required for App
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [students, setStudent] = useState([]);
   const [editing, setEditing] = useState(false);
   const [editingData, setEditingData] = useState({});
@@ -78,7 +79,7 @@ function App() {
   // signout function for firebase - resets the user and isLoggedIn
   const handleSignOut = () => {
     signOut(auth).then(() => {
-      setIsLoggedIn(false);
+      dispatch(updateIsLoggedIn());
       dispatch(updateUser({ user: {} }));
     });
   };
@@ -96,8 +97,8 @@ function App() {
       path: "/",
       element: (
         <div>
-          <NavBar isLoggedIn={isLoggedIn} handleSignOut={handleSignOut} />
-          <LoginSignup setIsLoggedIn={setIsLoggedIn} />
+          <NavBar handleSignOut={handleSignOut} />
+          <LoginSignup />
         </div>
       ),
     },
@@ -105,11 +106,10 @@ function App() {
       path: "/posts",
       element: (
         <div>
-          <NavBar isLoggedIn={isLoggedIn} handleSignOut={handleSignOut} />
+          <NavBar handleSignOut={handleSignOut} />
 
           <FirebaseDisplay
             students={students}
-            isLoggedIn={isLoggedIn}
             deleteItem={deleteItem}
             setEditing={setEditing}
             setEditingData={setEditingData}
@@ -121,15 +121,13 @@ function App() {
       path: "/form",
       element: (
         <>
-          <NavBar isLoggedIn={isLoggedIn} handleSignOut={handleSignOut} />
+          <NavBar handleSignOut={handleSignOut} />
           <RequireAuth redirectTo={"/"} user={user}>
             <FirebaseForm
-              isLoggedIn={isLoggedIn}
               editing={editing}
               setEditing={setEditing}
               editingData={editingData}
               setEditingData={setEditingData}
-              user={user}
             />
           </RequireAuth>
         </>

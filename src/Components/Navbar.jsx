@@ -1,13 +1,17 @@
 // Import required packages and compoents
 import { Link } from "react-router-dom";
+import { UserContext } from "../provider/UserProvider";
+import { useContext } from "react";
 
 // Component faciliating navigation through the application
 export default function NavBar(props) {
+  const { user: user } = useContext(UserContext);
+
   //  JSX displayed on the screen
   return (
     <div>
       {/* Conditional statement to showcase which button should be shown depending if the user is logged in */}
-      {props.isLoggedIn ? (
+      {user.isLoggedIn ? (
         <>
           <Link to="/form">Form</Link>
           <Link to="/posts">Posts</Link>

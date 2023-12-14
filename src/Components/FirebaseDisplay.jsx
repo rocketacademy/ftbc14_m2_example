@@ -1,16 +1,19 @@
 // Import required packages and components
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../provider/UserProvider";
+import { useContext } from "react";
 
 // Component to display all of the student data
 export default function FirebaseDisplay({
   setEditing,
   setEditingData,
   students,
-  isLoggedIn,
   deleteItem,
 }) {
   // React Router Dom navgiation to push users around.
   const navigate = useNavigate();
+
+  const { user: user } = useContext(UserContext);
 
   // function to begin the process of updating and push users to the form page
   const startUpdate = (student) => {
@@ -32,7 +35,7 @@ export default function FirebaseDisplay({
             <p>Location: {student.val.location}</p>
             <p>{student.val.user ? student.val.user : null}</p>
 
-            {isLoggedIn ? (
+            {user.isLoggedIn ? (
               <p>
                 <button onClick={() => startUpdate(student)}>update me</button>
                 <button onClick={() => deleteItem(student)}>delete</button>
