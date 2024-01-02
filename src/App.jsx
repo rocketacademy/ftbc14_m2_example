@@ -137,7 +137,7 @@ function App() {
           path: "editProfile",
           element: (
             <div>
-              <h3>Edit Profile</h3>
+              <h3>Hello Dana</h3>
               <p>Edit me now</p>
             </div>
           ),
@@ -146,7 +146,7 @@ function App() {
           path: "checkProfile",
           element: (
             <div>
-              <h3>My Profile</h3>
+              <h3>GoodBye Dana</h3>
               <p>Dont edit this</p>
             </div>
           ),

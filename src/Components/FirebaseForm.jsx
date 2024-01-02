@@ -14,7 +14,7 @@ import { database, storage } from "../firebase";
 
 // Firebase Key setup
 const DB_STUDENT = "students";
-const DB_STORAGE_KEY = "images";
+const DB_STORAGE_KEY = "images/";
 
 export default function FirebaseForm({
   editing,
